@@ -1,0 +1,36 @@
+services:
+  server:
+    image: carlasim/carla:0.9.14
+    privileged: true
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: /bin/bash ./CarlaUE4.sh -RenderOffScreen
+
+  # bridge_humble:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/bridge_humble.Dockerfile
+  #   command: sleep infinity
+
+  bridge:
+    build:
+      context: .
+      dockerfile: docker/bridge_foxy.Dockerfile
+    command: ros2 launch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch.py host:=server timeout:=20
+
+  websocket:
+    build:
+      context: .
+      dockerfile: docker/websocket.Dockerfile
+    ports:
+      - 8765:8765
+    command: ros2 run foxglove_bridge foxglove_bridge
+
+  # talker:
+  #   image: osrf/ros:humble-desktop
+  #   command: ros2 run demo_nodes_cpp talker
+  # listener:
+  #   image: osrf/ros:foxy-desktop
+  #   command: ros2 run demo_nodes_cpp listener
+  #   depends_on:
+  #     - talker
